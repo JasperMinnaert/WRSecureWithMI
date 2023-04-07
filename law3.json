@@ -125,6 +125,19 @@
       ]
     },
     {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2020-04-01-preview",
+      "name": "[variables('uniqueRoleGuidMicrosoftSentinelAutomationContributor')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('LAWDisplayName'))]",
+        "[concat(resourceId('Microsoft.OperationsManagement/solutions/', 'SecurityInsights(', parameters('LAWDisplayName'), ')'))]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('MicrosoftSentinelAutomationContributor')]",
+        "principalId": "[reference(resourceId('Microsoft.OperationsManagement/solutions/', 'SecurityInsights(', parameters('LAWDisplayName'), ')'), '2019-08-01', 'full').identity.principalId]"
+      }
+    },
+    {
       "type": "Microsoft.SecurityInsights/automationRules",
       "apiVersion": "2022-10-01-preview",
       "scope": "[format('Microsoft.OperationalInsights/workspaces/{0}', parameters('LAWDisplayName'))]",
@@ -154,19 +167,6 @@
         "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LAWDisplayName'))]",
         "[resourceId('Microsoft.Authorization/roleAssignments', variables('uniqueRoleGuidMicrosoftSentinelAutomationContributor'))]"
       ]
-    },
-    {
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2020-04-01-preview",
-      "name": "[variables('uniqueRoleGuidMicrosoftSentinelAutomationContributor')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('LAWDisplayName'))]",
-        "[concat(resourceId('Microsoft.OperationsManagement/solutions/', 'SecurityInsights(', parameters('LAWDisplayName'), ')'))]"
-      ],
-      "properties": {
-        "roleDefinitionId": "[variables('MicrosoftSentinelAutomationContributor')]",
-        "principalId": "[reference(resourceId('Microsoft.OperationsManagement/solutions/', 'SecurityInsights(', parameters('LAWDisplayName'), ')'), '2019-08-01', 'full').identity.principalId]"
-      }
     }
   ]
 }
