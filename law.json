@@ -134,7 +134,7 @@
       ],
       "properties": {
         "roleDefinitionId": "[variables('MicrosoftSentinelAutomationContributor')]",
-        "principalId": "[reference(resourceId('Microsoft.OperationsManagement/solutions/', 'SecurityInsights(', parameters('LAWDisplayName'), ')'), '2019-08-01', 'full').identity.principalId]"
+        "principalId": "[reference(concat(resourceId('Microsoft.OperationsManagement/solutions/', 'SecurityInsights(', parameters('LAWDisplayName'), ')'))).identity.principalId]"
       }
     },
     {
