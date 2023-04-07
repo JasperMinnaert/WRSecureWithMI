@@ -8,7 +8,7 @@ Bicep repo for Wortell Ready - How to secure logic apps with managed identities
 | Filename | Description |
 | --- | --- |
 | AddEnterpriseApplicationApiPermissions.ps1 | PowerShell script to assign API permissions (i.e. Graph) to Enterprise Applications. Used for Managed Identities. |
-| definition.json | Workflow definition of Logic App used for Bicep depeloyment. |
+| definition.json | Workflow definition of Logic App used for Bicep deployment. |
 | deploy.ps1 | PowerShell script that kicks off Bicep deployment. |
 | law.bicep | Bicep definition of Logic App, Log Analytics Workspace, Sentinel solution and more. |
 | law.json | ARM template equivalent to Bicep definition. Used for "deploy to Azure" button above. |
