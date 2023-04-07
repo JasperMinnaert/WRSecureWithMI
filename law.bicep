@@ -1,3 +1,8 @@
+//General
+param subscriptionID string = subscription().subscriptionId
+param RG string = resourceGroup().name
+param tenantID string = tenant().tenantId
+
 //Connection
 param CONDisplayName string
 
@@ -16,7 +21,6 @@ param dataRetention int
 //Automation rule
 param ARDisplayName string
 
-
 //Deploy connection
 resource sentinelConnection 'Microsoft.Web/connections@2018-07-01-preview' = {
   name: CONDisplayName
@@ -25,7 +29,7 @@ resource sentinelConnection 'Microsoft.Web/connections@2018-07-01-preview' = {
   properties: {
     alternativeParameterValues: {}
     api: {
-      id: '/subscriptions/6996cd12-78ad-45c8-b272-40e0d1d4e1f7/providers/Microsoft.Web/locations/westeurope/managedApis/azuresentinel'
+      id: '/subscriptions/${subscriptionID}/providers/Microsoft.Web/locations/westeurope/managedApis/azuresentinel'
     }
     customParameterValues: {}
     parameterValueType: 'Alternative'
@@ -50,7 +54,7 @@ resource logicapp 'Microsoft.Logic/workflows@2019-05-01' = {
           azuresentinel: {
             connectionId: sentinelConnection.id
             connectionName: sentinelConnection.name
-            id: '/subscriptions/6996cd12-78ad-45c8-b272-40e0d1d4e1f7/providers/Microsoft.Web/locations/westeurope/managedApis/azuresentinel'
+            id: '/subscriptions/${subscriptionID}/providers/Microsoft.Web/locations/westeurope/managedApis/azuresentinel'
             connectionProperties: {
               authentication: {
                 type: 'ManagedServiceIdentity'
@@ -116,8 +120,8 @@ resource automationRuleGuid 'Microsoft.SecurityInsights/automationRules@2022-10-
         order: 1
         actionType: 'RunPlaybook'
         actionConfiguration: {
-          logicAppResourceId: '/subscriptions/6996cd12-78ad-45c8-b272-40e0d1d4e1f7/resourceGroups/rg-wortellready-weu/providers/Microsoft.Logic/workflows/WortellReady_LogicApp'
-          tenantId: '2ce25f97-14be-4506-bc50-9505a266b45b'
+          logicAppResourceId: '/subscriptions/${subscriptionID}/resourceGroups/${RG}/providers/Microsoft.Logic/workflows/WortellReady_LogicApp'
+          tenantId: '${tenantID}'
         }
       }
     ]
