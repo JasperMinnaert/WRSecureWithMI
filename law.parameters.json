@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "LAWDisplayName": {
+      "value": "WortellReadyLogAnalyticsWorkspace"
+    },
+    "location": {
+      "value": "WestEurope"
+    },
+    "pricingTier": {
+      "value": "PerGB2018"
+    },
+    "immediatePurgeDataOn30DaysB": {
+      "value": true
+    },
+    "dataRetention": {
+      "value": 30
+    },
+    "ARDisplayName": {
+      "value": "WortellReady_TriggerPlayBook"
+    },
+    "LADisplayName": {
+      "value": "WortellReady_LogicApp"
+    },
+    "CONDIsplayName": {
+      "value": "WortellReady_Connection"
+    }
+  }
+}
