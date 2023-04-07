@@ -36,6 +36,7 @@
     }
   },
   "variables": {
+    "azureSentinelSolutionName": "[concat('SecurityInsights', '(', parameters('LAWDisplayName'),')')]",
     "$fxv#0": "{\n    \"definition\": {\n        \"$schema\": \"https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#\",\n        \"contentVersion\": \"1.0.0.0\",\n        \"parameters\": {\n            \"$connections\": {\n                \"defaultValue\": {},\n                \"type\": \"Object\"\n            }\n        },\n        \"triggers\": {\n            \"Microsoft_Sentinel_incident\": {\n                \"type\": \"ApiConnectionWebhook\",\n                \"inputs\": {\n                    \"body\": {\n                        \"callback_url\": \"@{listCallbackUrl()}\"\n                    },\n                    \"host\": {\n                        \"connection\": {\n                            \"name\": \"@parameters('$connections')['azuresentinel']['connectionId']\"\n                        }\n                    },\n                    \"path\": \"/incident-creation\"\n                }\n            }\n        },\n        \"actions\": {\n            \"Show_incident_title\": {\n                \"inputs\": \"@triggerBody()?['object']?['properties']?['title']\",\n                \"runAfter\": {},\n                \"type\": \"Compose\"\n            }\n        },\n        \"outputs\": {}\n    }\n}",
     "logicAppDefinition": "[json(variables('$fxv#0'))]",
     "MicrosoftSentinelAutomationContributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'f4c81013-99ee-4d62-a7ee-b3f1f648599a')]",
@@ -109,13 +110,13 @@
     {
       "type": "Microsoft.OperationsManagement/solutions",
       "apiVersion": "2015-11-01-preview",
-      "name": "[concat('SecurityInsights(', parameters('LAWDisplayName'), ')')]",
+      "name": "[variables('azureSentinelSolutionName')]",
       "location": "[parameters('location')]",
       "properties": {
         "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LAWDisplayName'))]"
       },
       "plan": {
-        "name": "[concat('SecurityInsights(', parameters('LAWDisplayName'), ')')]",
+        "name": "[variables('azureSentinelSolutionName')]",
         "product": "OMSGallery/SecurityInsights",
         "publisher": "Microsoft",
         "promotionCode": ""
@@ -130,11 +131,11 @@
       "name": "[variables('uniqueRoleGuidMicrosoftSentinelAutomationContributor')]",
       "dependsOn": [
         "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('LAWDisplayName'))]",
-        "[concat(resourceId('Microsoft.OperationsManagement/solutions/', 'SecurityInsights(', parameters('LAWDisplayName'), ')'))]"
+        "[resourceId('Microsoft.OperationsManagement/solutions/', variables('azureSentinelSolutionName'))]"
       ],
       "properties": {
         "roleDefinitionId": "[variables('MicrosoftSentinelAutomationContributor')]",
-        "principalId": "[reference(concat(resourceId('Microsoft.OperationsManagement/solutions/', 'SecurityInsights(', parameters('LAWDisplayName'), ')'))).identity.principalId]"
+        "principalId": "[reference(resourceId('Microsoft.OperationsManagement/solutions/', variables('azureSentinelSolutionName'))).identity.principalId]"
       }
     },
     {
@@ -163,7 +164,7 @@
         ]
       },
       "dependsOn": [
-        "[resourceId('Microsoft.OperationsManagement/solutions', concat('SecurityInsights(', parameters('LAWDisplayName'), ')'))]",
+        "[resourceId('Microsoft.OperationsManagement/solutions/', variables('azureSentinelSolutionName'))]",
         "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LAWDisplayName'))]",
         "[resourceId('Microsoft.Authorization/roleAssignments', variables('uniqueRoleGuidMicrosoftSentinelAutomationContributor'))]"
       ]
