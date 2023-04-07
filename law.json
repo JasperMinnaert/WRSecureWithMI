@@ -36,42 +36,8 @@
     }
   },
   "variables": {
-    "logicAppDefinition": [
-      {
-        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-        "contentVersion": "1.0.0.0",
-        "parameters": {
-          "$connections": {
-            "defaultValue": {},
-            "type": "Object"
-          }
-        },
-        "triggers": {
-          "Microsoft_Sentinel_incident": {
-            "type": "ApiConnectionWebhook",
-            "inputs": {
-              "body": {
-                "callback_url": "@{listCallbackUrl()}"
-              },
-              "host": {
-                "connection": {
-                  "name": "@parameters('$connections')['azuresentinel']['connectionId']"
-                }
-              },
-              "path": "/incident-creation"
-            }
-          }
-        },
-        "actions": {
-          "Show_incident_title": {
-            "inputs": "@triggerBody()?['object']?['properties']?['title']",
-            "runAfter": {},
-            "type": "Compose"
-          }
-        },
-        "outputs": {}
-      }
-    ]
+    "$fxv#0": "{\n    \"definition\": {\n        \"$schema\": \"https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#\",\n        \"contentVersion\": \"1.0.0.0\",\n        \"parameters\": {\n            \"$connections\": {\n                \"defaultValue\": {},\n                \"type\": \"Object\"\n            }\n        },\n        \"triggers\": {\n            \"Microsoft_Sentinel_incident\": {\n                \"type\": \"ApiConnectionWebhook\",\n                \"inputs\": {\n                    \"body\": {\n                        \"callback_url\": \"@{listCallbackUrl()}\"\n                    },\n                    \"host\": {\n                        \"connection\": {\n                            \"name\": \"@parameters('$connections')['azuresentinel']['connectionId']\"\n                        }\n                    },\n                    \"path\": \"/incident-creation\"\n                }\n            }\n        },\n        \"actions\": {\n            \"Show_incident_title\": {\n                \"inputs\": \"@triggerBody()?['object']?['properties']?['title']\",\n                \"runAfter\": {},\n                \"type\": \"Compose\"\n            }\n        },\n        \"outputs\": {}\n    }\n}",
+    "logicAppDefinition": "[json(variables('$fxv#0'))]"
   },
   "resources": [
     {
@@ -101,7 +67,7 @@
       },
       "properties": {
         "state": "Enabled",
-        "definition": "[variables('logicAppDefinition')]",
+        "definition": "[variables('logicAppDefinition').definition]",
         "parameters": {
           "$connections": {
             "value": {
