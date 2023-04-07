@@ -1,0 +1,159 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "CONDisplayName": {
+      "type": "string",
+      "defaultValue": "WortellReady_Connection"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "WestEurope"
+    },
+    "LADisplayName": {
+      "type": "string",
+      "defaultValue": "WortellReady_LogicApp"
+    },
+    "LAWDisplayName": {
+      "type": "string",
+      "defaultValue": "WortellReadyLogAnalyticsWorkspace"
+    },
+    "pricingTier": {
+      "type": "string",
+      "defaultValue": "PerGB2018"
+    },
+    "immediatePurgeDataOn30DaysB": {
+      "type": "bool",
+      "defaultValue": true
+    },
+    "dataRetention": {
+      "type": "int",
+      "defaultValue": 30
+    },
+    "ARDisplayName": {
+      "type": "string",
+      "defaultValue": "WortellReady_TriggerPlayBook"
+    }
+  },
+  "variables": {
+    "azureSentinelSolutionName": "[concat('SecurityInsights', '(', parameters('LAWDisplayName'),')')]",
+    "$fxv#0": "{\n    \"definition\": {\n        \"$schema\": \"https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#\",\n        \"contentVersion\": \"1.0.0.0\",\n        \"parameters\": {\n            \"$connections\": {\n                \"defaultValue\": {},\n                \"type\": \"Object\"\n            }\n        },\n        \"triggers\": {\n            \"Microsoft_Sentinel_incident\": {\n                \"type\": \"ApiConnectionWebhook\",\n                \"inputs\": {\n                    \"body\": {\n                        \"callback_url\": \"@{listCallbackUrl()}\"\n                    },\n                    \"host\": {\n                        \"connection\": {\n                            \"name\": \"@parameters('$connections')['azuresentinel']['connectionId']\"\n                        }\n                    },\n                    \"path\": \"/incident-creation\"\n                }\n            }\n        },\n        \"actions\": {\n            \"Show_incident_title\": {\n                \"inputs\": \"@triggerBody()?['object']?['properties']?['title']\",\n                \"runAfter\": {},\n                \"type\": \"Compose\"\n            }\n        },\n        \"outputs\": {}\n    }\n}",
+    "logicAppDefinition": "[json(variables('$fxv#0'))]",
+    "MicrosoftSentinelAutomationContributor": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'f4c81013-99ee-4d62-a7ee-b3f1f648599a')]",
+    "uniqueRoleGuidMicrosoftSentinelAutomationContributor": "[guid(resourceId('Microsoft.OperationalInsights/workspaces/', parameters('LAWDisplayName')))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Web/connections",
+      "apiVersion": "2018-07-01-preview",
+      "name": "[parameters('CONDisplayName')]",
+      "location": "[parameters('location')]",
+      "kind": "V1",
+      "properties": {
+        "alternativeParameterValues": {},
+        "api": {
+          "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]"
+        },
+        "customParameterValues": {},
+        "parameterValueType": "Alternative",
+        "displayName": "SentinelApi",
+        "parameterValueSet": {}
+      }
+    },
+    {
+      "type": "Microsoft.Logic/workflows",
+      "apiVersion": "2019-05-01",
+      "name": "[parameters('LADisplayName')]",
+      "location": "[parameters('location')]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "state": "Enabled",
+        "definition": "[variables('logicAppDefinition').definition]",
+        "parameters": {
+          "$connections": {
+            "value": {
+              "azuresentinel": {
+                "connectionId": "[resourceId('Microsoft.Web/connections', parameters('CONDisplayName'))]",
+                "connectionName": "[parameters('CONDisplayName')]",
+                "id": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Web/locations/', resourceGroup().location, '/managedApis/azuresentinel')]",
+                "connectionProperties": {
+                  "authentication": {
+                    "type": "ManagedServiceIdentity"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/connections', parameters('CONDisplayName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2020-08-01",
+      "name": "[parameters('LAWDisplayName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": {
+          "name": "[parameters('pricingTier')]"
+        },
+        "retentionInDays": "[parameters('dataRetention')]",
+        "features": {
+          "immediatePurgeDataOn30Days": "[parameters('immediatePurgeDataOn30DaysB')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.OperationsManagement/solutions",
+      "apiVersion": "2015-11-01-preview",
+      "name": "[variables('azureSentinelSolutionName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LAWDisplayName'))]"
+      },
+      "plan": {
+        "name": "[variables('azureSentinelSolutionName')]",
+        "product": "OMSGallery/SecurityInsights",
+        "publisher": "Microsoft",
+        "promotionCode": ""
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LAWDisplayName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.SecurityInsights/automationRules",
+      "apiVersion": "2022-10-01-preview",
+      "scope": "[format('Microsoft.OperationalInsights/workspaces/{0}', parameters('LAWDisplayName'))]",
+      "name": "[parameters('LAWDisplayName')]",
+      "properties": {
+        "displayName": "[parameters('ARDisplayName')]",
+        "order": 1,
+        "triggeringLogic": {
+          "isEnabled": true,
+          "triggersOn": "Incidents",
+          "triggersWhen": "Created",
+          "conditions": []
+        },
+        "actions": [
+          {
+            "order": 1,
+            "actionType": "RunPlaybook",
+            "actionConfiguration": {
+              "logicAppResourceId": "[ResourceId('Microsoft.Logic/workflows/', parameters('LADisplayName'))]",
+              "tenantId": "2ce25f97-14be-4506-bc50-9505a266b45b"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationsManagement/solutions/', variables('azureSentinelSolutionName'))]",
+        "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LAWDisplayName'))]"
+      ]
+    }
+  ]
+}
