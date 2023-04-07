@@ -126,19 +126,6 @@
       ]
     },
     {
-      "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2020-04-01-preview",
-      "name": "[variables('uniqueRoleGuidMicrosoftSentinelAutomationContributor')]",
-      "dependsOn": [
-        "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('LAWDisplayName'))]",
-        "[resourceId('Microsoft.OperationsManagement/solutions/', variables('azureSentinelSolutionName'))]"
-      ],
-      "properties": {
-        "roleDefinitionId": "[variables('MicrosoftSentinelAutomationContributor')]",
-        "principalId": "[reference(resourceId('Microsoft.OperationsManagement/solutions/', variables('azureSentinelSolutionName'))).identity.principalId]"
-      }
-    },
-    {
       "type": "Microsoft.SecurityInsights/automationRules",
       "apiVersion": "2022-10-01-preview",
       "scope": "[format('Microsoft.OperationalInsights/workspaces/{0}', parameters('LAWDisplayName'))]",
@@ -165,8 +152,7 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.OperationsManagement/solutions/', variables('azureSentinelSolutionName'))]",
-        "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LAWDisplayName'))]",
-        "[resourceId('Microsoft.Authorization/roleAssignments', variables('uniqueRoleGuidMicrosoftSentinelAutomationContributor'))]"
+        "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('LAWDisplayName'))]"
       ]
     }
   ]
